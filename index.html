@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sorteo ULL - Códigos Secretos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f6f2f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      color: #3c005a;
+    }
+    .container {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+      border: 3px solid #800080;
+    }
+    h2 {
+      color: #800080;
+    }
+    input, button {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button {
+      background: #800080;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background: #a020a0;
+    }
+    .message {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+    .info {
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .resumen {
+      margin-top: 1rem;
+      padding: 0.8rem;
+      background: #f9f9f9;
+      border-radius: 0.5rem;
+      border: 1px solid #ddd;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎉 Sorteo con Códigos Secretos 🎉</h2>
+    <p><strong>Delegación de Estudiantes de Ingenierías Industriales</strong></p>
+    <p>Introduce tus datos la primera vez y participa con tu código secreto.</p>
+
+    <div id="registroInicial">
+      <input type="text" id="nombre" placeholder="Nombre completo" />
+      <input type="text" id="alu" placeholder="Matrícula (ALU)" />
+      <input type="text" id="telefono" placeholder="Teléfono" />
+    </div>
+
+    <div id="resumenDatos" class="resumen" style="display:none;"></div>
+
+    <input type="text" id="codigo" placeholder="Código secreto" />
+    <button onclick="registrar()">Participar</button>
+
+    <div class="message" id="mensaje"></div>
+    <div class="info">
+      <p><strong>Apertura inscripciones:</strong> 8 de septiembre, 08:00h</p>
+      <p><strong>Cierre inscripciones:</strong> 8 de septiembre, 11:00h</p>
+    </div>
+  </div>
+
+  <script>
+    const codigosValidos = ["FLOR2025", "AGUA2025", "SOL2025"];
+    let participaciones = [];
+    let registrado = false;
+    let datosUsuario = {};
+
+    let codigosUsados = new Set(JSON.parse(localStorage.getItem("codigosUsados") || "[]"));
+
+    const datosGuardados = JSON.parse(localStorage.getItem("datosUsuario"));
+    if (datosGuardados) {
+      datosUsuario = datosGuardados;
+      registrado = true;
+      document.getElementById("registroInicial").style.display = "none";
+      mostrarResumen();
+    }
+
+    const apertura = new Date("2025-09-08T08:00:00");
+    const cierre = new Date("2025-09-08T11:00:00");
+
+    function mostrarResumen() {
+      const resumenDiv = document.getElementById("resumenDatos");
+      resumenDiv.style.display = "block";
+      resumenDiv.innerHTML = `
+        <strong>Datos guardados:</strong><br>
+        👤 Nombre: ${datosUsuario.nombre}<br>
+        🎓 ALU: ${datosUsuario.alu}<br>
+        📱 Teléfono: ${datosUsuario.telefono}
+      `;
+    }
+
+    function registrar() {
+      const ahora = new Date();
+      const mensaje = document.getElementById("mensaje");
+      const codigo = document.getElementById("codigo").value.trim().toUpperCase();
+
+      if (ahora < apertura) {
+        mensaje.textContent = "⏳ El sorteo aún no ha comenzado.";
+        mensaje.style.color = "orange";
+        return;
+      }
+      if (ahora > cierre) {
+        mensaje.textContent = "⛔ El periodo de inscripciones ha finalizado.";
+        mensaje.style.color = "red";
+        return;
+      }
+
+      if (!registrado) {
+        const nombre = document.getElementById("nombre").value.trim();
+        const alu = document.getElementById("alu").value.trim();
+        const telefono = document.getElementById("telefono").value.trim();
+        if (!nombre || !alu || !telefono) {
+          mensaje.textContent = "⚠️ Debes completar todos los datos personales.";
+          mensaje.style.color = "red";
+          return;
+        }
+        datosUsuario = { nombre, alu, telefono };
+        localStorage.setItem("datosUsuario", JSON.stringify(datosUsuario));
+        document.getElementById("registroInicial").style.display = "none";
+        registrado = true;
+        mostrarResumen();
+      }
+
+      if (!codigo) {
+        mensaje.textContent = "⚠️ Debes introducir un código.";
+        mensaje.style.color = "red";
+        return;
+      }
+      if (!codigosValidos.includes(codigo)) {
+        mensaje.textContent = "❌ Código inválido.";
+        mensaje.style.color = "red";
+        return;
+      }
+      if (codigosUsados.has(codigo)) {
+        mensaje.textContent = "⚠️ Ese código ya ha sido utilizado y no puede repetirse.";
+        mensaje.style.color = "red";
+        return;
+      }
+
+      participaciones.push({ ...datosUsuario, codigo });
+      codigosUsados.add(codigo);
+      localStorage.setItem("codigosUsados", JSON.stringify(Array.from(codigosUsados)));
+
+      mensaje.textContent = `✅ ¡Participación registrada para ${datosUsuario.nombre} con el código ${codigo}!`;
+      mensaje.style.color = "green";
+      document.getElementById("codigo").value = "";
+
+      // Enviar datos a Google Sheets
+      fetch("TU_URL_DE_GOOGLE_SCRIPT_AQUI", {
+        method: "POST",
+        body: JSON.stringify({ 
+          nombre: datosUsuario.nombre, 
+          alu: datosUsuario.alu, 
+          telefono: datosUsuario.telefono, 
+          codigo: codigo 
+        }),
+        headers: { "Content-Type": "application/json" }
+      })
+      .then(res => console.log("Enviado a Google Sheets"))
+      .catch(err => console.error("Error:", err));
+    }
+  </script>
+</body>
+</html>
