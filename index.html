@@ -84,8 +84,8 @@
 
     <div class="message" id="mensaje"></div>
     <div class="info">
-      <p><strong>Apertura inscripciones:</strong> 8 de septiembre, 08:00h</p>
-      <p><strong>Cierre inscripciones:</strong> 8 de septiembre, 11:00h</p>
+      <p><strong>Apertura inscripciones:</strong> Hoy 08:00h</p>
+      <p><strong>Cierre inscripciones:</strong> Hoy 23:59h</p>
     </div>
   </div>
 
@@ -97,6 +97,7 @@
 
     let codigosUsados = new Set(JSON.parse(localStorage.getItem("codigosUsados") || "[]"));
 
+    // Recuperar datos guardados del usuario
     const datosGuardados = JSON.parse(localStorage.getItem("datosUsuario"));
     if (datosGuardados) {
       datosUsuario = datosGuardados;
@@ -105,8 +106,10 @@
       mostrarResumen();
     }
 
-    const apertura = new Date("2025-09-02T08:00:00");
-    const cierre = new Date("2025-09-08T11:00:00");
+    // Apertura hoy a las 08:00 y cierre hoy a las 23:59
+    const hoy = new Date();
+    const apertura = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 8, 0, 0); 
+    const cierre = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 23, 59, 59);
 
     function mostrarResumen() {
       const resumenDiv = document.getElementById("resumenDatos");
@@ -124,6 +127,7 @@
       const mensaje = document.getElementById("mensaje");
       const codigo = document.getElementById("codigo").value.trim().toUpperCase();
 
+      // Verificar fechas
       if (ahora < apertura) {
         mensaje.textContent = "⏳ El sorteo aún no ha comenzado.";
         mensaje.style.color = "orange";
@@ -135,12 +139,13 @@
         return;
       }
 
+      // Verificar datos iniciales
       if (!registrado) {
         const nombre = document.getElementById("nombre").value.trim();
         const alu = document.getElementById("alu").value.trim();
         const telefono = document.getElementById("telefono").value.trim();
         if (!nombre || !alu || !telefono) {
-          mensaje.textContent = "⚠️ Debes completar todos los datos personales.";
+          mensaje.textContent = "⚠️ Debes completar todos los datos personales antes de participar.";
           mensaje.style.color = "red";
           return;
         }
@@ -151,6 +156,7 @@
         mostrarResumen();
       }
 
+      // Verificar código
       if (!codigo) {
         mensaje.textContent = "⚠️ Debes introducir un código.";
         mensaje.style.color = "red";
@@ -167,6 +173,7 @@
         return;
       }
 
+      // Guardar participación
       participaciones.push({ ...datosUsuario, codigo });
       codigosUsados.add(codigo);
       localStorage.setItem("codigosUsados", JSON.stringify(Array.from(codigosUsados)));
@@ -192,4 +199,3 @@
   </script>
 </body>
 </html>
-
